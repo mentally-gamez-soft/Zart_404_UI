@@ -35,5 +35,23 @@ def index() -> rx.Component:
     )
 
 
+def about_page() -> rx.Component:
+    return rx.container(
+        rx.color_mode.button(position="top-right"),
+        rx.vstack(
+            rx.heading("About Us", size="9"),
+            rx.text(
+                "This is us",
+            ),
+            spacing="5",
+            justify="center",
+            min_height="85vh",
+            id="about-page",
+        ),
+        rx.logo(),
+    )
+
+
 app = rx.App()
 app.add_page(index)
+app.add_page(about_page, route="/about")
