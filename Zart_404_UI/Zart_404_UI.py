@@ -3,18 +3,17 @@
 import reflex as rx
 
 from rxconfig import config
+from Zart_404_UI.pages.base_page import base_page
 
 
 class State(rx.State):
     """The app state."""
 
-    ...
-
 
 def index() -> rx.Component:
     # Welcome Page (Index)
-    return rx.container(
-        rx.color_mode.button(position="top-right"),
+
+    return base_page(
         rx.vstack(
             rx.heading("Welcome to Reflex!", size="9"),
             rx.text(
@@ -30,8 +29,9 @@ def index() -> rx.Component:
             spacing="5",
             justify="center",
             min_height="85vh",
+            align="center",
+            id="my-element-test",
         ),
-        rx.logo(),
     )
 
 
