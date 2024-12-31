@@ -1,6 +1,7 @@
 import reflex as rx
 
 from Zart_404_UI.constantes import URLS, heading, logo
+from Zart_404_UI.routes import NavState
 
 NAVBAR_TITLE = "Zart-404"
 LOGIN_BUTTON_MESSAGE = "Log In"
@@ -20,10 +21,10 @@ def navbar_links(media_type: str) -> list:
             navbar_link("Contact", URLS["contact"]),
         ]
     return [
-        rx.menu.item("Home"),
-        rx.menu.item("About"),
-        rx.menu.item("Pricing"),
-        rx.menu.item("Contact"),
+        rx.menu.item("Home", on_click=NavState.to_home),
+        rx.menu.item("About", on_click=NavState.to_about),
+        rx.menu.item("Pricing", on_click=NavState.to_pricing),
+        rx.menu.item("Contact", on_click=NavState.to_contact),
     ]
 
 
