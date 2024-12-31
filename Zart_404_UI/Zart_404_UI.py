@@ -3,11 +3,15 @@
 import reflex as rx
 
 from rxconfig import config
+from Zart_404_UI.constantes import URLS
 from Zart_404_UI.pages.base_page import base_page
+
+from . import pages
 
 
 class State(rx.State):
-    """The app state."""
+    def redirect_to_about(self):
+        return rx.redirect("/about")
 
 
 def index() -> rx.Component:
@@ -26,6 +30,7 @@ def index() -> rx.Component:
                 href="https://reflex.dev/docs/getting-started/introduction/",
                 is_external=True,
             ),
+            rx.button("About Us", on_click=State.redirect_to_about),
             spacing="5",
             justify="center",
             min_height="85vh",
@@ -37,3 +42,5 @@ def index() -> rx.Component:
 
 app = rx.App()
 app.add_page(index)
+app.add_page(pages.about_page, route=URLS.get("about"))
+app.add_page(pages.pricing_page, route=URLS.get("pricing"))
