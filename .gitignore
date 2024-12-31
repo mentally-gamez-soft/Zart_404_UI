@@ -199,3 +199,6 @@ LOGS
 script-test.ps1
 
 requirements.txt
+
+alembic/*
+alembic.ini
