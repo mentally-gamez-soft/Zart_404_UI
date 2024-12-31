@@ -53,22 +53,18 @@ def navbar_logo(media_type: str) -> rx.Component:
 
 def navbar_title(media_type: str, title: str) -> rx.Component:
     if media_type == "desktop":
-        return rx.link(
-            rx.heading(
-                title,
-                size=heading["desktop-layout"]["size"],
-                weight=heading["desktop-layout"]["weight"],
-            ),
-            href="/",
+        return rx.heading(
+            title,
+            size=heading["desktop-layout"]["size"],
+            weight=heading["desktop-layout"]["weight"],
+            on_click=NavState.to_home,
         )
 
-    return rx.link(
-        rx.heading(
-            title,
-            size=heading["mobile-layout"]["size"],
-            weight=heading["mobile-layout"]["weight"],
-        ),
-        href="/",
+    return rx.heading(
+        title,
+        size=heading["mobile-layout"]["size"],
+        weight=heading["mobile-layout"]["weight"],
+        on_click=NavState.to_home,
     )
 
 
