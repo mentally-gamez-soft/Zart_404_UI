@@ -1,6 +1,6 @@
 import reflex as rx
 
-from Zart_404_UI.constantes import heading, logo
+from Zart_404_UI.constantes import URLS, heading, logo
 
 NAVBAR_TITLE = "Zart-404"
 LOGIN_BUTTON_MESSAGE = "Log In"
@@ -14,10 +14,10 @@ def navbar_link(text: str, url: str) -> rx.Component:
 def navbar_links(media_type: str) -> list:
     if media_type == "desktop":
         return [
-            navbar_link("Home", "/#"),
-            navbar_link("About", "/#"),
-            navbar_link("Pricing", "/#"),
-            navbar_link("Contact", "/#"),
+            navbar_link("Home", URLS["home"]),
+            navbar_link("About", URLS["about"]),
+            navbar_link("Pricing", URLS["pricing"]),
+            navbar_link("Contact", URLS["contact"]),
         ]
     return [
         rx.menu.item("Home"),
@@ -29,33 +29,45 @@ def navbar_links(media_type: str) -> list:
 
 def navbar_logo(media_type: str) -> rx.Component:
     if media_type == "desktop":
-        return rx.image(
-            src=logo["img-src"],
-            width=logo["desktop-layout"]["width"],
-            height=logo["desktop-layout"]["height"],
-            border_radius=logo["desktop-layout"]["border_radius"],
+        return rx.link(
+            rx.image(
+                src=logo["img-src"],
+                width=logo["desktop-layout"]["width"],
+                height=logo["desktop-layout"]["height"],
+                border_radius=logo["desktop-layout"]["border_radius"],
+            ),
+            href="/",
         )
 
-    return rx.image(
-        src=logo["img-src"],
-        width=logo["mobile-layout"]["width"],
-        height=logo["mobile-layout"]["height"],
-        border_radius=logo["mobile-layout"]["border_radius"],
+    return rx.link(
+        rx.image(
+            src=logo["img-src"],
+            width=logo["mobile-layout"]["width"],
+            height=logo["mobile-layout"]["height"],
+            border_radius=logo["mobile-layout"]["border_radius"],
+        ),
+        href="/",
     )
 
 
 def navbar_title(media_type: str, title: str) -> rx.Component:
     if media_type == "desktop":
-        return rx.heading(
-            title,
-            size=heading["desktop-layout"]["size"],
-            weight=heading["desktop-layout"]["weight"],
+        return rx.link(
+            rx.heading(
+                title,
+                size=heading["desktop-layout"]["size"],
+                weight=heading["desktop-layout"]["weight"],
+            ),
+            href="/",
         )
 
-    return rx.heading(
-        title,
-        size=heading["mobile-layout"]["size"],
-        weight=heading["mobile-layout"]["weight"],
+    return rx.link(
+        rx.heading(
+            title,
+            size=heading["mobile-layout"]["size"],
+            weight=heading["mobile-layout"]["weight"],
+        ),
+        href="/",
     )
 
 
