@@ -8,6 +8,15 @@ class NavState(rx.State):
     def to_home(self):
         return rx.redirect(URLS["home"])
 
+    def to_blogs(self):
+        return rx.redirect(URLS["blogs"])
+
+    def to_add_blog_post(self):
+        return rx.redirect(URLS["add_blog_post"])
+
+    def to_create_blog(self):
+        return self.to_add_blog_post()
+
     def to_about(self):
         return rx.redirect(URLS["about"])
 

@@ -16,12 +16,14 @@ def navbar_links(media_type: str) -> list:
     if media_type == "desktop":
         return [
             navbar_link("Home", URLS["home"]),
+            navbar_link("Blog", URLS["blogs"]),
             navbar_link("About", URLS["about"]),
             navbar_link("Pricing", URLS["pricing"]),
             navbar_link("Contact", URLS["contact"]),
         ]
     return [
         rx.menu.item("Home", on_click=NavState.to_home),
+        rx.menu.item("Blog", on_click=NavState.to_blogs),
         rx.menu.item("About", on_click=NavState.to_about),
         rx.menu.item("Pricing", on_click=NavState.to_pricing),
         rx.menu.item("Contact", on_click=NavState.to_contact),

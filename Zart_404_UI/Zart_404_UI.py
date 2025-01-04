@@ -6,7 +6,7 @@ from rxconfig import config
 from Zart_404_UI.constantes import URLS
 from Zart_404_UI.pages.base_page import base_page
 
-from . import pages
+from . import blog, pages
 
 
 class State(rx.State):
@@ -44,3 +44,19 @@ app = rx.App()
 app.add_page(index)
 app.add_page(pages.about_page, route=URLS.get("about"))
 app.add_page(pages.pricing_page, route=URLS.get("pricing"))
+app.add_page(
+    blog.blogpost_entries_list_page,
+    route=URLS.get("blogs"),
+    on_load=blog.BlogPostState.load_posts,
+)
+app.add_page(blog.add_blog_post_page, route=URLS.get("add_blog_post"))
+app.add_page(
+    blog.blog_post_detail_page,
+    route=URLS.get("blog_post"),
+    on_load=blog.BlogPostState.get_post_detail,
+)
+app.add_page(
+    blog.edit_blog_post_page,
+    route="/blog/[slug]/edit",
+    on_load=blog.BlogPostState.get_post_detail,
+)

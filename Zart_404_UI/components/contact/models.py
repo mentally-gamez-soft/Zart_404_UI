@@ -4,9 +4,7 @@ import reflex as rx
 import sqlalchemy
 from sqlmodel import Field
 
-
-def get_utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from Zart_404_UI.tools import get_utc_now
 
 
 class ContactEntryModel(rx.Model, table=True):
