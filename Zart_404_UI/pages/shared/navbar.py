@@ -1,4 +1,5 @@
 import reflex as rx
+import reflex_local_auth
 
 from Zart_404_UI.constantes import URLS, heading, logo
 from Zart_404_UI.routes import NavState
@@ -84,12 +85,22 @@ def navbar(title: str) -> rx.Component:
                     spacing="5",
                 ),
                 rx.hstack(
-                    rx.button(
-                        SIGNUP_BUTTON_MESSAGE,
-                        size="3",
-                        variant="outline",
+                    rx.link(
+                        rx.button(
+                            SIGNUP_BUTTON_MESSAGE,
+                            size="3",
+                            variant="outline",
+                        ),
+                        href=reflex_local_auth.routes.REGISTER_ROUTE,
                     ),
-                    rx.button(LOGIN_BUTTON_MESSAGE, size="3"),
+                    rx.link(
+                        rx.button(
+                            LOGIN_BUTTON_MESSAGE,
+                            size="3",
+                            variant="outline",
+                        ),
+                        href=reflex_local_auth.routes.LOGIN_ROUTE,
+                    ),
                     spacing="4",
                     justify="end",
                 ),
@@ -109,8 +120,13 @@ def navbar(title: str) -> rx.Component:
                     rx.menu.content(
                         *navbar_links(media_type="mobile"),
                         rx.menu.separator(),
-                        rx.menu.item(LOGIN_BUTTON_MESSAGE),
-                        rx.menu.item(SIGNUP_BUTTON_MESSAGE),
+                        rx.menu.item(
+                            LOGIN_BUTTON_MESSAGE, on_click=NavState.to_login
+                        ),
+                        rx.menu.item(
+                            SIGNUP_BUTTON_MESSAGE,
+                            on_click=NavState.to_register,
+                        ),
                     ),
                     justify="end",
                 ),

@@ -7,4 +7,5 @@ URLS = {
     "blogs": "/blogs",
     "blog_post": "/blog/[slug]",
     "add_blog_post": "/add_blog_post",
+    "logout": "/logout",
 }

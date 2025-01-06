@@ -167,7 +167,7 @@ class BlogPostUpdateFormState(BlogPostState):
             publish_status = form_data.pop("publish_status") == "on"
 
         updated_data = {**form_data}
-        updated_data["publish_status"] = publish_status
+        updated_data["publish_active"] = publish_status
         updated_data["publish_date"] = final_publish_date
 
         self.edit_post(post_id, updated_data)

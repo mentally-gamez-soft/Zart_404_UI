@@ -1,9 +1,19 @@
 import reflex as rx
+import reflex_local_auth
 
 from Zart_404_UI.constantes import URLS
 
 
 class NavState(rx.State):
+
+    def to_register(self):
+        return rx.redirect(reflex_local_auth.routes.REGISTER_ROUTE)
+
+    def to_login(self):
+        return rx.redirect(reflex_local_auth.routes.LOGIN_ROUTE)
+
+    def to_logout(self):
+        return rx.redirect(URLS["logout"])
 
     def to_home(self):
         return rx.redirect(URLS["home"])
