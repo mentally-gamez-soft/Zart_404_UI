@@ -2,12 +2,20 @@ from typing import Optional
 
 import reflex as rx
 import reflex_local_auth
+import sqlalchemy
+import sqlalchemy.orm
 import sqlmodel
 
-from .models import UserInfo
+from Zart_404_UI.models import UserInfo
 
 
 class UserSessionState(reflex_local_auth.LocalAuthState):
+
+    @rx.var(cache=True)
+    def userinfo_id(self) -> str:
+        if self.authenticated_user_info is None:
+            return None
+        return self.authenticated_user_info.id
 
     @rx.var(cache=True)
     def authenticated_username(self) -> str:
@@ -20,16 +28,18 @@ class UserSessionState(reflex_local_auth.LocalAuthState):
         if self.authenticated_user.id < 0:
             return None
         with rx.session() as session:
-            result = session.exec(
-                sqlmodel.select(UserInfo).where(
-                    UserInfo.user_id == self.authenticated_user.id
-                ),
-            ).one_or_none()
+            sql_statement = (
+                sqlmodel.select(UserInfo)
+                .options(sqlalchemy.orm.joinedload(UserInfo.local_user))
+                .where(UserInfo.user_id == self.authenticated_user.id)
+            )
+
+            result = session.exec(sql_statement).one_or_none()
 
             if result is None:
                 return None
-            print(result)
-            local_user = result.local_user
+            # print(result)
+            # local_user = result.local_user
             # print(self.user_name)
             return result
 
@@ -41,7 +51,6 @@ class UserSessionState(reflex_local_auth.LocalAuthState):
 
     def execute_logout(self):
         self.do_logout()
-        self.user_name = None
         return rx.redirect("/")
 
 

@@ -16,5 +16,4 @@ def base_dashboard_page(child_component: rx.Component) -> rx.Component:
             ),
         ),
         # rx.color_mode.button(position="bottom-left", id="color-mode"),
-        id="base-page",
     )

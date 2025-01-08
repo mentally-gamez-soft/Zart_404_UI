@@ -3,6 +3,7 @@ from reflex.style import toggle_color_mode
 
 from Zart_404_UI.auth.state import UserSessionState
 from Zart_404_UI.constantes.routes import URLS
+from Zart_404_UI.models import UserInfo
 from Zart_404_UI.routes.navigation_state import NavState
 
 
@@ -94,7 +95,6 @@ def sidebar_item(text: str, icon: str, href: str) -> rx.Component:
 
 
 def sidebar_user_item(display_type: str) -> rx.Component:
-    from Zart_404_UI.auth.models import UserInfo
 
     auth_user_info: UserInfo = UserSessionState.authenticated_user_info
     # label_user_name: str = rx.cond(UserSessionState.user_name,UserSessionState.user_name, "My Account")   # auth_user_info.local_user.username  # UserSessionState.authenticated_user_info[1] # rx.cond(auth_user_info & auth_user_info.local_user.username, auth_user_info.local_user.username,"My Account") # auth_user_info.local_user.username

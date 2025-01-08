@@ -32,7 +32,12 @@ def contact_page() -> rx.Component:
                 required=True,
                 width="100%",
             ),
-            rx.text_area(name="message", placeholder="Message", required=True),
+            rx.text_area(
+                name="message",
+                placeholder="Message",
+                required=True,
+                width="100%",
+            ),
             rx.button("Submit", type="submit"),
         ),
         on_submit=ContactState.handle_submit,

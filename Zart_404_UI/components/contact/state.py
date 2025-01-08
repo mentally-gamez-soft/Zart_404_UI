@@ -2,10 +2,11 @@ import asyncio
 
 import reflex as rx
 
-from .models import ContactEntryModel
+from Zart_404_UI.auth.state import UserSessionState
+from Zart_404_UI.models import ContactEntryModel
 
 
-class ContactState(rx.State):
+class ContactState(UserSessionState):
     form_data: dict = {}
     form_submitted: bool = False
 

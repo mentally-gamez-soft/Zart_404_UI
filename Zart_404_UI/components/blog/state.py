@@ -2,15 +2,16 @@ from datetime import datetime
 from typing import List, Optional
 
 import reflex as rx
+import sqlalchemy.orm
 from slugify import slugify
 from sqlmodel import select
 
+from Zart_404_UI.auth.state import UserSessionState
 from Zart_404_UI.constantes import URLS
+from Zart_404_UI.models import BlogPostModel, UserInfo
 
-from .models import BlogPostModel
 
-
-class BlogPostState(rx.State):
+class BlogPostState(UserSessionState):
     posts: List["BlogPostModel"] = []
     post: Optional["BlogPostModel"] = None
 
@@ -40,25 +41,48 @@ class BlogPostState(rx.State):
 
     def get_post_detail(self):
         """Retrieve one specific post."""
+        if self.userinfo_id is None:
+            self.post = None
+            return
+
+        lookups = (BlogPostModel.userinfo_id == self.userinfo_id) & (
+            BlogPostModel.slug == self.blog_post_slug
+        )
+
         with rx.session() as session:
             if self.blog_post_slug == "":
                 self.post = None
+                self.content = ""
+                self.post_publish_active = False
                 return  # No slug, no post
 
-            self.post = session.exec(
-                select(BlogPostModel).where(
-                    BlogPostModel.slug == self.blog_post_slug
+            sql_statement = (
+                select(BlogPostModel)
+                .options(
+                    sqlalchemy.orm.joinedload(
+                        BlogPostModel.userinfo
+                    ).joinedload(UserInfo.local_user)
                 )
-            ).one_or_none()
+                .where(lookups)
+            )
+
+            self.post = session.exec(sql_statement).one_or_none()
             self.content = self.post.content if self.post else ""
             self.post_publish_active = (
                 self.post.publish_active if self.post else False
             )
 
-    def load_posts(self):
+    def load_posts(self, *args, **kwargs):
         """Load all blog posts."""
+        lookup_args = ()
+        # if published_only:
+        #     lookup_args = (BlogPostModel.publish_active == True)
         with rx.session() as session:
-            self.posts = session.exec(select(BlogPostModel)).all()
+            self.posts = session.exec(
+                select(BlogPostModel)
+                .options(sqlalchemy.orm.joinedload(BlogPostModel.userinfo))
+                .where(BlogPostModel.userinfo_id == self.userinfo_id)
+            ).all()
 
     def create_post(self, form_data: dict):
         """Add a new blog post."""
@@ -109,6 +133,9 @@ class BlogPostFormState(BlogPostState):
 
     def handle_submit(self, form_data: dict):
         self.form_data = form_data
+        if self.userinfo_id is not None:
+            self.form_data["userinfo_id"] = self.userinfo_id
+        print(form_data)
         self.create_post(form_data)
         self.form_data = {}  # Clear the form data after submission
         return self.to_blog_post(edit_page=True)

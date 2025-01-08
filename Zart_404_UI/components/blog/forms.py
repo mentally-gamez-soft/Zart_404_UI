@@ -1,10 +1,13 @@
 import reflex as rx
+import reflex_local_auth
 
 from Zart_404_UI.pages.base_page import base_page
 
-from .state import BlogPostFormState, BlogPostUpdateFormState
+from .not_found_404 import blogpost_not_found
+from .state import BlogPostFormState, BlogPostState, BlogPostUpdateFormState
 
 
+@reflex_local_auth.require_login
 def add_blog_post_page() -> rx.Component:
     blog_post_form = rx.form(
         rx.vstack(
@@ -42,6 +45,7 @@ def add_blog_post_page() -> rx.Component:
     )
 
 
+@reflex_local_auth.require_login
 def edit_blog_post_page() -> rx.Component:
     post = BlogPostUpdateFormState.post
     content = post.content if post is not None else ""
@@ -106,12 +110,16 @@ def edit_blog_post_page() -> rx.Component:
     )
 
     return base_page(
-        rx.vstack(
-            rx.heading("Editing post: ", post.title, size="9"),
-            rx.desktop_only(rx.box(blog_post_form, width="50vw")),
-            rx.mobile_and_tablet(blog_post_form, width="85vw"),
-            spacing="5",
-            align="center",
-            min_height="95vh",
+        rx.cond(
+            BlogPostState.post,
+            rx.vstack(
+                rx.heading("Editing post: ", post.title, size="9"),
+                rx.desktop_only(rx.box(blog_post_form, width="50vw")),
+                rx.mobile_and_tablet(blog_post_form, width="85vw"),
+                spacing="5",
+                align="center",
+                min_height="95vh",
+            ),
+            blogpost_not_found(),
         ),
     )

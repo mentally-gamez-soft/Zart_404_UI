@@ -17,7 +17,6 @@ def default_navbar(child_component: rx.Component) -> rx.Component:
         ),
         rx.logo(),
         rx.color_mode.button(position="bottom-left", id="color-mode"),
-        id="base-page",
     )
 
 
