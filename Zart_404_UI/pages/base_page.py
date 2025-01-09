@@ -3,7 +3,7 @@ import reflex as rx
 from Zart_404_UI.auth.state import UserSessionState
 from Zart_404_UI.pages.shared.navbar import NAVBAR_TITLE, navbar
 
-from .dashboard import base_dashboard_page
+from .landing_page_4_authenticated_user import authenticated_user_landing_page
 
 
 def default_navbar(child_component: rx.Component) -> rx.Component:
@@ -25,6 +25,6 @@ def base_page(child_component: rx.Component) -> rx.Component:
 
     return rx.cond(
         UserSessionState.is_authenticated,
-        base_dashboard_page(child_component),
+        authenticated_user_landing_page(child_component),
         default_navbar(child_component),
     )

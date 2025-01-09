@@ -18,6 +18,9 @@ class NavState(rx.State):
     def to_home(self):
         return rx.redirect(URLS["home"])
 
+    def to_articles(self):
+        return rx.redirect(URLS["articles"])
+
     def to_blogs(self):
         return rx.redirect(URLS["blogs"])
 

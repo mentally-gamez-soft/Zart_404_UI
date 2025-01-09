@@ -26,7 +26,6 @@ class ContactState(UserSessionState):
     @rx.event
     async def handle_submit(self, form_data: dict):
         """Handle the form submit."""
-        print(form_data)
         self.form_data = form_data
         if self.is_valid_form():
             with rx.session() as session:

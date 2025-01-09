@@ -1,19 +1,12 @@
 import reflex as rx
 
-from .sidebar import sidebar
+from Zart_404_UI.articles.list_articles import article_public_list_component
 
 
-def base_dashboard_page(child_component: rx.Component) -> rx.Component:
-    return rx.fragment(
-        rx.hstack(
-            sidebar(),
-            rx.box(
-                child_component,
-                rx.logo(),
-                # bg=rx.color("accent", 3),
-                padding="1em",
-                width="100%",
-            ),
-        ),
-        # rx.color_mode.button(position="bottom-left", id="color-mode"),
+def dashboard_component() -> rx.Component:
+    return rx.box(
+        rx.heading("Welcome back", size="4"),
+        rx.divider(margin_top="1em", margin_bottom="1em"),
+        article_public_list_component(columns=3, limit=20, spacing=3),
+        min_height="85vh",
     )

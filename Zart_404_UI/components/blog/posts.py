@@ -1,4 +1,5 @@
 import reflex as rx
+import reflex_local_auth
 
 from Zart_404_UI.constantes import URLS
 from Zart_404_UI.models import BlogPostModel
@@ -7,7 +8,9 @@ from Zart_404_UI.pages.base_page import base_page
 from .state import BlogPostState as state
 
 
-def blog_post_detail_link(child: rx.Component, post: BlogPostModel):
+def blog_post_detail_link(
+    child: rx.Component, post: BlogPostModel
+) -> rx.Component:
     if post is None or post.id is None:
         return rx.fragment(child)
 
@@ -18,7 +21,7 @@ def blog_post_detail_link(child: rx.Component, post: BlogPostModel):
     )
 
 
-def blog_post_list_item(post: BlogPostModel):
+def blog_post_list_item(post: BlogPostModel) -> rx.Component:
     return rx.box(
         blog_post_detail_link(
             rx.heading(post.title, size="4"),
@@ -28,6 +31,7 @@ def blog_post_list_item(post: BlogPostModel):
     )
 
 
+@reflex_local_auth.require_login
 def blogpost_entries_list_page() -> rx.Component:
     posts = BlogPostModel.select()
     return base_page(

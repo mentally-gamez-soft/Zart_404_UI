@@ -21,7 +21,7 @@ def blog_post_detail_page() -> rx.Component:
                 edit_link_element,
                 align="end",
             ),
-            rx.text("User info:", BlogPostState.post.userinfo),
+            # rx.text("User info:", BlogPostState.post.userinfo),
             rx.text(BlogPostState.post.publish_date),
             rx.text(
                 BlogPostState.post.content,

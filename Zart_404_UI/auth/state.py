@@ -12,13 +12,13 @@ from Zart_404_UI.models import UserInfo
 class UserSessionState(reflex_local_auth.LocalAuthState):
 
     @rx.var(cache=True)
-    def userinfo_id(self) -> str:
+    def userinfo_id(self) -> Optional[int]:
         if self.authenticated_user_info is None:
             return None
         return self.authenticated_user_info.id
 
     @rx.var(cache=True)
-    def authenticated_username(self) -> str:
+    def authenticated_username(self) -> Optional[str]:
         if self.authenticated_user.id < 0:
             return None
         return self.authenticated_user.username.capitalize()

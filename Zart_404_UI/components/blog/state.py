@@ -92,7 +92,6 @@ class BlogPostState(UserSessionState):
             session.add(blog_post)
             session.commit()
             session.refresh(blog_post)  # Refresh the instance to get the id
-            print("Post created:", blog_post)
             self.post = blog_post
 
     def edit_post(self, id: int, updated_data: dict):
@@ -102,7 +101,6 @@ class BlogPostState(UserSessionState):
                 select(BlogPostModel).where(BlogPostModel.id == id)
             ).one_or_none()
             if post is None:
-                print("Post not found")
                 return
             for k, v in updated_data.items():
                 setattr(post, k, v)
@@ -135,7 +133,6 @@ class BlogPostFormState(BlogPostState):
         self.form_data = form_data
         if self.userinfo_id is not None:
             self.form_data["userinfo_id"] = self.userinfo_id
-        print(form_data)
         self.create_post(form_data)
         self.form_data = {}  # Clear the form data after submission
         return self.to_blog_post(edit_page=True)
@@ -168,7 +165,6 @@ class BlogPostUpdateFormState(BlogPostState):
 
     def handle_submit(self, form_data: dict):
         self.form_data = form_data
-        print(form_data)
         post_id = form_data.pop("id")
         publish_date = None
         publish_time = None
@@ -176,7 +172,6 @@ class BlogPostUpdateFormState(BlogPostState):
             publish_date = form_data.pop("publish_date")
         if "publish_time" in form_data:
             publish_time = form_data.pop("publish_time")
-        print(publish_date, publish_time)
         publish_input_string = f"{publish_date} {publish_time}"
         final_publish_date = None
 
@@ -185,7 +180,6 @@ class BlogPostUpdateFormState(BlogPostState):
                 publish_input_string, "%Y-%m-%d %H:%M:%S"
             )
         except ValueError as e:
-            print("Error parsing date:", e)
             final_publish_date = None
 
         publish_status = False

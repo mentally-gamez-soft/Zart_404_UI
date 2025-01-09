@@ -156,7 +156,8 @@ def sidebar_user_item(display_type: str) -> rx.Component:
 def sidebar_items() -> rx.Component:
     return rx.vstack(
         sidebar_item("Dashboard", "layout-dashboard", URLS["home"]),
-        sidebar_item("Blog", "notebook-tabs", URLS["blogs"]),
+        sidebar_item("Articles", "globe", URLS["articles"]),
+        sidebar_item("Blog", "newspaper", URLS["blogs"]),
         sidebar_item("Create Post", "notebook-pen", URLS["add_blog_post"]),
         sidebar_item("Contact", "mail", URLS["contact"]),
         # sidebar_item("Messages", "mail", "/#"),
