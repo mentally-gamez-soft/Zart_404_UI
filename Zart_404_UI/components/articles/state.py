@@ -26,7 +26,7 @@ class ArticlePublicState(UserSessionState):
         self.load_posts()
         yield
 
-    @rx.var
+    @rx.var(cache=True)
     def post_id(self) -> str:
         return self.router.page.params.get("post_id", "")
 
@@ -34,13 +34,13 @@ class ArticlePublicState(UserSessionState):
     def set_post_publish_active(self, value: bool):
         self.post_publish_active = value
 
-    @rx.var
+    @rx.var(cache=False)
     def post_url(self) -> str:
         if not self.post:
             return f"{URLS.get("articles")}"
         return f"{URLS.get("articles")}/{self.post.slug}"
 
-    @rx.var
+    @rx.var(cache=False)
     def post_slug(self) -> str:
         return self.router.page.params.get("slug") or ""
 

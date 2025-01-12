@@ -41,6 +41,11 @@ class UserInfo(rx.Model, table=True):
         cascade_delete=True, back_populates="userinfo"
     )
 
+    # A user is managing is provided a calendar
+    calendar: List["AgendaModel"] = Relationship(
+        cascade_delete=True, back_populates="userinfo"
+    )
+
 
 class BlogPostModel(rx.Model, table=True):
     # relation one to many user <===>  Blogs
@@ -100,4 +105,29 @@ class ContactEntryModel(rx.Model, table=True):
     )
     userinfo: Optional["UserInfo"] = Relationship(
         back_populates="contact_entries"
+    )
+
+
+# Ajout de modele pour la gestion de l'agenda
+class AgendaModel(rx.Model, table=True):
+    userinfo_id: int = Field(
+        default=None, foreign_key="userinfo.id", ondelete="CASCADE"
+    )
+    userinfo: Optional["UserInfo"] = Relationship(back_populates="calendar")
+
+    country: str = Field(nullable=False)
+    town: str = Field(nullable=True)
+
+    from_date: datetime = Field(
+        default_factory=None,
+        sa_type=sqlalchemy.DateTime(timezone=True),
+        sa_column_kwargs={},
+        nullable=False,
+    )
+
+    to_date: datetime = Field(
+        default_factory=None,
+        sa_type=sqlalchemy.DateTime(timezone=True),
+        sa_column_kwargs={},
+        nullable=False,
     )

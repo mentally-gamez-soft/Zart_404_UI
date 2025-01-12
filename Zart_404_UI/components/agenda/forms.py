@@ -31,14 +31,14 @@ def add_entry_to_agenda_page() -> rx.Component:
                 rx.input(
                     default_value=AgendaState.display_date,
                     type="date",
-                    name="start_date",
+                    name="from_date",
                     width="100%",
                     required=True,
                 ),
                 rx.input(
                     default_value=AgendaState.display_date,
                     type="date",
-                    name="end_date",
+                    name="to_date",
                     width="100%",
                     required=True,
                 ),

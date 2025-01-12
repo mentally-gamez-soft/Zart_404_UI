@@ -23,19 +23,19 @@ class BlogPostState(UserSessionState):
     def set_post_publish_active(self, value: bool):
         self.post_publish_active = value
 
-    @rx.var
+    @rx.var(cache=False)
     def blog_post_url(self) -> str:
         if not self.post:
             return f"{URLS.get("blogs")}"
         return f"{URLS.get("blog")}/{self.post.slug}"
 
-    @rx.var
+    @rx.var(cache=False)
     def blog_post_edit_url(self) -> str:
         if not self.post:
             return f"{URLS.get("blogs")}"
         return f"{URLS.get("blog")}/{self.post.slug}/edit"
 
-    @rx.var
+    @rx.var(cache=True)
     def blog_post_slug(self) -> str:
         return self.router.page.params.get("slug") or ""
 
@@ -141,7 +141,7 @@ class BlogPostFormState(BlogPostState):
 class BlogPostUpdateFormState(BlogPostState):
     form_data: dict = {}
 
-    @rx.var
+    @rx.var(cache=True)
     def publish_display_date(self) -> str:
         if not self.post:
             return datetime.now().strftime(
@@ -153,7 +153,7 @@ class BlogPostUpdateFormState(BlogPostState):
             )  # format for the day YYYY-MM-DD
         return self.post.publish_date.strftime("%Y-%m-%d")
 
-    @rx.var
+    @rx.var(cache=True)
     def publish_display_time(self) -> str:
         if not self.post:
             return datetime.now().strftime("%H:%M:%S")

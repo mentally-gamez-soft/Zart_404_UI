@@ -17,7 +17,7 @@ class ContactState(UserSessionState):
             for field in ["first_name", "last_name", "email", "message"]
         )
 
-    @rx.var
+    @rx.var(cache=False)
     def thank_you(self) -> str:
         return "Thank {} you for your submission!".format(
             self.form_data.get("first_name", "")
