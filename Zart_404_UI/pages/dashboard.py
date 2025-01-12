@@ -1,6 +1,8 @@
 import reflex as rx
 
-from Zart_404_UI.articles.list_articles import article_public_list_component
+from Zart_404_UI.components.articles.list_articles import (
+    article_public_list_component,
+)
 
 
 def dashboard_component() -> rx.Component:

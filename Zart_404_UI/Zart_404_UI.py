@@ -3,33 +3,61 @@
 import reflex as rx
 
 from rxconfig import config
-from Zart_404_UI.articles.article import article_detail_page
-from Zart_404_UI.articles.list_articles import article_public_list_page
-from Zart_404_UI.articles.state import ArticlePublicState
 from Zart_404_UI.auth.pages import (
     custom_login_page,
     custom_register_page,
     logout_confirm_page,
 )
 from Zart_404_UI.auth.state import UserSessionState
+from Zart_404_UI.components.articles.article import article_detail_page
+from Zart_404_UI.components.articles.list_articles import (
+    article_public_list_page,
+)
+from Zart_404_UI.components.articles.state import ArticlePublicState
 from Zart_404_UI.constantes import URLS
 from Zart_404_UI.pages.base_page import base_page
 from Zart_404_UI.pages.dashboard import dashboard_component
 
 from . import blog, pages
+from .components import agenda
+
+CODING_COLORS: bool = False
 
 
 def index() -> rx.Component:
-    return base_page(
-        rx.cond(
-            UserSessionState.is_authenticated,
-            dashboard_component(),
-            pages.landing_component(),
-        )
+    return rx.cond(
+        CODING_COLORS,
+        rx.hstack(
+            base_page(
+                rx.cond(
+                    UserSessionState.is_authenticated,
+                    dashboard_component(),
+                    pages.landing_component(),
+                )
+            ),
+            rx.theme_panel(default_open=True),
+        ),
+        base_page(
+            rx.cond(
+                UserSessionState.is_authenticated,
+                dashboard_component(),
+                pages.landing_component(),
+            )
+        ),
     )
 
 
-app = rx.App()
+app = rx.App(
+    theme=rx.theme(
+        appearance="light",
+        has_background=True,
+        radius="large",
+        accent_color="sky",
+        grayColor="olive",
+        scaling="95%",
+    )
+)
+
 app.add_page(index)
 app.add_page(pages.about_page, route=URLS.get("about"))
 app.add_page(pages.pricing_page, route=URLS.get("pricing"))
@@ -60,7 +88,11 @@ app.add_page(
     route="/blog/[slug]/edit",
     on_load=blog.BlogPostState.get_post_detail,
 )
-
+app.add_page(
+    agenda.add_entry_to_agenda_page,
+    route=URLS.get("agenda"),
+    # on_load=blog.BlogPostState.get_post_detail,
+)
 
 # Routes for managing users via reflex-local-auth
 # /login

@@ -160,6 +160,7 @@ def sidebar_items() -> rx.Component:
         sidebar_item("Blog", "newspaper", URLS["blogs"]),
         sidebar_item("Create Post", "notebook-pen", URLS["add_blog_post"]),
         sidebar_item("Contact", "mail", URLS["contact"]),
+        sidebar_item("Agenda", "calendar", URLS["agenda"]),
         # sidebar_item("Messages", "mail", "/#"),
         spacing="1",
         width="100%",

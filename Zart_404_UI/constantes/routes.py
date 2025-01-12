@@ -10,4 +10,5 @@ URLS = {
     "logout": "/logout",
     "articles": "/articles",
     "article_post": "/article/[slug]",
+    "agenda": "/agenda",
 }
