@@ -56,7 +56,10 @@ def add_entry_to_agenda_page() -> rx.Component:
             rx.desktop_only(
                 rx.box(agenda_form, width="50vw"), rx.box(agenda_list_page())
             ),
-            rx.mobile_and_tablet(agenda_form, width="85vw"),
+            rx.mobile_and_tablet(
+                rx.box(agenda_form, width="85vw"),
+                rx.box(agenda_list_page()),
+            ),
             spacing="5",
             align="center",
             min_height="95vh",

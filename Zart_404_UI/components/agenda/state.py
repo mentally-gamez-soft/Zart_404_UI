@@ -22,6 +22,30 @@ class AgendaState(UserSessionState):
 
     limit: int = 20  # pagination on article list
 
+    edit_mode_agenda_active: bool = False
+    edit_mode_agenda_id: int = -1
+
+    def handle_click_speed_dial(self, index: int, action: str):
+        print(f"clicked for id {index} with action {action}")
+        if action in ("Delete"):
+            self.remove_agenda_from_calendar(index)
+
+        elif action in ("Modify"):
+            self.active_edit_mode_agenda(index)
+
+    def remove_agenda_from_calendar(self, idx: int):
+        agenda_to_remove = self.calendar[idx]
+        self.delete_agenda_from_db(agenda_to_remove)
+        del self.calendar[idx]
+
+    def active_edit_mode_agenda(self, idx: int):
+        self.edit_mode_agenda_id = idx
+        self.edit_mode_agenda_active = True
+
+    def deactive_edit_mode_agenda(self):
+        self.edit_mode_agenda_id = -1
+        self.edit_mode_agenda_active = False
+
     def load_calendar(self, *args, **kwargs):
         """Load user calendar."""
         lookup_args = ()
@@ -57,6 +81,11 @@ class AgendaState(UserSessionState):
             session.commit()
             session.refresh(new_agenda)
             self.calendar.append(new_agenda)
+
+    def delete_agenda_from_db(self, agenda: AgendaModel):
+        with rx.session() as session:
+            session.delete(agenda)
+            session.commit()
 
     def is_correct_dates(self, from_date: datetime, to_date: datetime) -> bool:
         return from_date < to_date
@@ -173,76 +202,86 @@ class AgendaState(UserSessionState):
         # return self.to_blog_post()
 
 
-class SpeedDialHorizontal(rx.ComponentState):
+class SpeedDialHorizontal(rx.State):  # (rx.ComponentState):
     is_open: bool = False
+
+    @rx.var
+    def f_is_open(self):
+        return self.is_open
+
+    def toggle_true(self):
+        self.is_open = True
+
+    def toggle_false(self):
+        self.is_open = False
 
     @rx.event
     def toggle(self, value: bool):
         self.is_open = value
 
-    @classmethod
-    def get_component(cls, **props):
-        def menu_item(icon: str, text: str) -> rx.Component:
-            return rx.tooltip(
-                rx.icon_button(
-                    rx.icon(icon, padding="2px"),
-                    variant="soft",
-                    color_scheme="gray",
-                    size="3",
-                    cursor="pointer",
-                    radius="full",
-                ),
-                side="top",
-                content=text,
-            )
+    # @classmethod
+    # def get_component(cls, **props):
+    #     def menu_item(icon: str, text: str) -> rx.Component:
+    #         return rx.tooltip(
+    #             rx.icon_button(
+    #                 rx.icon(icon, padding="2px"),
+    #                 variant="soft",
+    #                 color_scheme="gray",
+    #                 size="3",
+    #                 cursor="pointer",
+    #                 radius="full",
+    #             ),
+    #             side="top",
+    #             content=text,
+    #         )
 
-        def menu() -> rx.Component:
-            return rx.hstack(
-                menu_item("copy", "Copy"),
-                menu_item("download", "Download"),
-                menu_item("share-2", "Share"),
-                position="absolute",
-                bottom="0",
-                spacing="2",
-                padding_right="10px",
-                right="100%",
-                direction="row-reverse",
-                align_items="center",
-            )
+    #     def menu() -> rx.Component:
+    #         return rx.hstack(
+    #             menu_item("copy", "Copy"),
+    #             menu_item("download", "Download"),
+    #             menu_item("share-2", "Share"),
+    #             position="absolute",
+    #             bottom="0",
+    #             spacing="2",
+    #             padding_right="10px",
+    #             right="100%",
+    #             direction="row-reverse",
+    #             align_items="center",
+    #         )
 
-        return rx.box(
-            rx.box(
-                rx.icon_button(
-                    rx.icon(
-                        "plus",
-                        style={
-                            "transform": rx.cond(
-                                cls.is_open,
-                                "rotate(45deg)",
-                                "rotate(0)",
-                            ),
-                            "transition": "transform 150ms cubic-bezier(0.4, 0, 0.2, 1)",
-                        },
-                        class_name="dial",
-                    ),
-                    variant="solid",
-                    color_scheme="green",
-                    size="3",
-                    cursor="pointer",
-                    radius="full",
-                    position="relative",
-                ),
-                rx.cond(
-                    cls.is_open,
-                    menu(),
-                ),
-                position="relative",
-            ),
-            on_mouse_enter=cls.toggle(True),
-            on_mouse_leave=cls.toggle(False),
-            on_click=cls.toggle(~cls.is_open),
-            style={"bottom": "15px", "right": "15px"},
-            position="absolute",
-            # z_index="50",
-            **props,
-        )
+    #     return rx.box(
+    #         rx.box(
+    #             rx.icon_button(
+    #                 rx.icon(
+    #                     "plus",
+    #                     style={
+    #                         "transform": rx.cond(
+    #                             cls.is_open,
+    #                             "rotate(45deg)",
+    #                             "rotate(0)",
+    #                         ),
+    #                         "transition": "transform 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+    #                     },
+    #                     class_name="dial",
+    #                 ),
+    #                 variant="solid",
+    #                 color_scheme="green",
+    #                 size="3",
+    #                 cursor="pointer",
+    #                 radius="full",
+    #                 position="relative",
+    #             ),
+    #             rx.cond(
+    #                 cls.is_open,
+    #                 menu(),
+    #             ),
+    #             position="relative",
+    #         ),
+    #         on_mouse_enter=cls.toggle(True),
+    #         on_mouse_leave=cls.toggle(False),
+    #         on_click=cls.toggle(~cls.is_open),
+    #         style={"bottom": "15px", "right": "15px"},
+    #         position="absolute",
+    #         # z_index="50",
+    #         **props,
+    #     )
