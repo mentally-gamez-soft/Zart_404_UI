@@ -6,17 +6,12 @@ import reflex as rx
 class SpeedDialState(rx.State):
 
     item_is_open: bool = False
-    items: List[Tuple[str, str]] = [
-        ("trash-2", "Delete"),
-        ("pencil", "Modify"),
-    ]
 
-    @rx.var(cache=True)
-    def list_items(self):
-        return self.items
+    actions: List[str] = ["Delete", "Modify"]
 
-    def add_item(self, icon_name: str, action_verb: str):
-        self.items.append((icon_name, action_verb))
+    @rx.var(cache=False)
+    def list_actions(self) -> List[str]:
+        return self.actions
 
     @rx.event
     def handle_click_speed_dial(self, *args, **kwargs):

@@ -1,34 +1,33 @@
 import reflex as rx
 
+from .icons import get_icon, get_icon_trash
 from .state import SpeedDialState
 
 
 def speed_dial_component(index: int):
-    def menu_item(icon: str, text: str) -> rx.Component:
+    def menu_item(action: str) -> rx.Component:
         return rx.tooltip(
             rx.icon_button(
-                rx.icon(icon, padding="2px"),
+                get_icon(action=action),
                 variant="soft",
                 color_scheme="gray",
                 size="2",
                 cursor="pointer",
                 radius="full",
                 on_click=SpeedDialState.handle_click_speed_dial(
-                    {"index": index, "action": text}
+                    {"index": index, "action": action}
                 ),
             ),
             side="top",
-            content=text,
+            content=action,
         )
 
     def menu() -> rx.Component:
         return rx.hstack(
             rx.foreach(
-                SpeedDialState.items,
-                lambda icon_name, action: menu_item(icon_name, action),
+                SpeedDialState.list_actions,
+                lambda action: menu_item(action),
             ),
-            # menu_item("pencil", "Modify"),
-            # menu_item("trash-2", "Delete"),
             position="absolute",
             bottom="0",
             spacing="2",
@@ -69,7 +68,7 @@ def speed_dial_component(index: int):
         ),
         on_mouse_enter=SpeedDialState.toggle(True),
         on_mouse_leave=SpeedDialState.toggle(False),
-        on_click=SpeedDialState.toggle(~SpeedDialState.f_is_open),
+        on_click=SpeedDialState.toggle(~SpeedDialState.is_open),
         style={"bottom": "7px", "right": "7px"},
         position="absolute",
         # z_index="50",

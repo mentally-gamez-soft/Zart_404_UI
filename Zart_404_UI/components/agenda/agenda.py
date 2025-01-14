@@ -1,5 +1,6 @@
 import reflex as rx
 
+from Zart_404_UI.components.speed_dials import render_speed_dial_component
 from Zart_404_UI.models import AgendaModel
 from Zart_404_UI.pages.base_page import base_page
 
