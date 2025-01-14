@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import List, Tuple
 
 import reflex as rx
+import sqlalchemy.orm
 from sqlmodel import select
 
 from Zart_404_UI.auth.state import UserSessionState
-from Zart_404_UI.models import AgendaModel
+from Zart_404_UI.models import AgendaModel, UserInfo
 from Zart_404_UI.tools.utils import get_datetime
 
 START_TIME = "00:00:00"
@@ -13,10 +14,33 @@ END_TIME = "23:59:59"
 
 
 class AgendaState(UserSessionState):
+    calendar: List["AgendaModel"] = []
     form_data: dict = {}
     agenda: List[Tuple[Tuple[str, str], Tuple[datetime, datetime]]] = (
         []
     )  # serves as a cached version of the agenda to reduce SQL calls, [("Paris",("2024-01-01", "20240201"))]
+
+    limit: int = 20  # pagination on article list
+
+    def load_calendar(self, *args, **kwargs):
+        """Load user calendar."""
+        lookup_args = ()
+
+        with rx.session() as session:
+            self.calendar = session.exec(
+                select(AgendaModel).options(
+                    sqlalchemy.orm.joinedload(AgendaModel.userinfo).joinedload(
+                        UserInfo.local_user
+                    )
+                )
+                # .where(lookup_args)
+                .limit(self.limit)
+            ).all()
+
+    def set_limit_and_reload(self, limit: int = 5):
+        self.limit = limit
+        self.load_calendar()
+        yield
 
     def record_agenda_in_db(
         self, country: str, town: str, from_date: datetime, to_date: datetime
@@ -32,6 +56,7 @@ class AgendaState(UserSessionState):
             session.add(new_agenda)
             session.commit()
             session.refresh(new_agenda)
+            self.calendar.append(new_agenda)
 
     def is_correct_dates(self, from_date: datetime, to_date: datetime) -> bool:
         return from_date < to_date
@@ -105,12 +130,12 @@ class AgendaState(UserSessionState):
         to_date = get_datetime(self.form_data.pop("to_date"), END_TIME)
 
         if self.validate_entry_data(from_date=from_date, to_date=to_date):
-            self.add_entry_to_agenda(
-                country=country,
-                town=town,
-                from_date=from_date,
-                to_date=to_date,
-            )
+            # self.add_entry_to_agenda(
+            #     country=country,
+            #     town=town,
+            #     from_date=from_date,
+            #     to_date=to_date,
+            # )
             self.record_agenda_in_db(
                 country=country,
                 town=town,
@@ -146,3 +171,78 @@ class AgendaState(UserSessionState):
 
         # self.edit_post(post_id, updated_data)
         # return self.to_blog_post()
+
+
+class SpeedDialHorizontal(rx.ComponentState):
+    is_open: bool = False
+
+    @rx.event
+    def toggle(self, value: bool):
+        self.is_open = value
+
+    @classmethod
+    def get_component(cls, **props):
+        def menu_item(icon: str, text: str) -> rx.Component:
+            return rx.tooltip(
+                rx.icon_button(
+                    rx.icon(icon, padding="2px"),
+                    variant="soft",
+                    color_scheme="gray",
+                    size="3",
+                    cursor="pointer",
+                    radius="full",
+                ),
+                side="top",
+                content=text,
+            )
+
+        def menu() -> rx.Component:
+            return rx.hstack(
+                menu_item("copy", "Copy"),
+                menu_item("download", "Download"),
+                menu_item("share-2", "Share"),
+                position="absolute",
+                bottom="0",
+                spacing="2",
+                padding_right="10px",
+                right="100%",
+                direction="row-reverse",
+                align_items="center",
+            )
+
+        return rx.box(
+            rx.box(
+                rx.icon_button(
+                    rx.icon(
+                        "plus",
+                        style={
+                            "transform": rx.cond(
+                                cls.is_open,
+                                "rotate(45deg)",
+                                "rotate(0)",
+                            ),
+                            "transition": "transform 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+                        },
+                        class_name="dial",
+                    ),
+                    variant="solid",
+                    color_scheme="green",
+                    size="3",
+                    cursor="pointer",
+                    radius="full",
+                    position="relative",
+                ),
+                rx.cond(
+                    cls.is_open,
+                    menu(),
+                ),
+                position="relative",
+            ),
+            on_mouse_enter=cls.toggle(True),
+            on_mouse_leave=cls.toggle(False),
+            on_click=cls.toggle(~cls.is_open),
+            style={"bottom": "15px", "right": "15px"},
+            position="absolute",
+            # z_index="50",
+            **props,
+        )
