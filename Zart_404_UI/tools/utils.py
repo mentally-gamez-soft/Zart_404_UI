@@ -18,3 +18,7 @@ def get_datetime(
         result = None
 
     return result
+
+
+def get_date_string(date: datetime):
+    return date.strftime("%Y-%m-%d %H:%M:%S")

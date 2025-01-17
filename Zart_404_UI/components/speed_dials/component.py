@@ -1,5 +1,7 @@
 import reflex as rx
 
+from Zart_404_UI.components.agenda.state import AgendaState
+
 from .icons import get_icon, get_icon_trash
 from .state import SpeedDialState
 
@@ -14,9 +16,8 @@ def speed_dial_component(index: int):
                 size="2",
                 cursor="pointer",
                 radius="full",
-                on_click=SpeedDialState.handle_click_speed_dial(
-                    {"index": index, "action": action}
-                ),
+                on_click=AgendaState.handle_click_speed_dial(index, action),
+                id=f"icon-{index}",
             ),
             side="top",
             content=action,
