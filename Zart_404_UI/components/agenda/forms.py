@@ -51,66 +51,99 @@ def autocomplete_town_search(town: str = AgendaFormState.search_towns):
     )
 
 
-def add_entry_to_agenda_page() -> rx.Component:
-
-    agenda_form = rx.form(
+def form_agenda_edition():
+    return rx.form(
         rx.vstack(
             rx.hstack(
                 rx.icon("map", size=40),
-                rx.cond(
-                    AgendaState.edit_mode_agenda_active,
-                    autocomplete(
-                        name="country",
-                        placeholder="Country Location",
-                        required=True,
-                        width="100%",
-                        state=AgendaFormState,
-                        edit_mode=True,
-                        value=AgendaState.edit_agenda.country,
-                    ),
-                    autocomplete(
-                        name="country",
-                        placeholder="Country Location",
-                        required=True,
-                        width="100%",
-                        state=AgendaFormState,
-                    ),
+                autocomplete(
+                    name="country",
+                    placeholder="Country Location",
+                    required=False,
+                    width="100%",
+                    state=AgendaFormState,
+                    value=AgendaState.edit_agenda.country,
                 ),
                 rx.icon("map-pinned", size=40),
-                # rx.cond(AgendaState.edit_mode_agenda_active,
-                autocomplete_town_search(
-                    town=AgendaState.edit_agenda.town
-                ),  # CZO BUG ICI
-                #     autocomplete_town_search(),
-                # ),
+                autocomplete_town_search(town=AgendaState.edit_agenda.town),
                 width="100%",
             ),
             rx.divider(size="4"),
             rx.hstack(
-                rx.vstack(
-                    rx.heading("From:", size="2"),
-                    rx.input(
-                        default_value=AgendaState.display_date,
-                        on_change=AgendaState.handle_on_change_from_date,
-                        type="date",
-                        name="from_date",
-                        width="100%",
-                        required=True,
-                    ),
-                    width="100%",
+                custom_date_input(
+                    title="From:",
+                    title_size=2,
+                    name="from_date",
+                    default_value=AgendaState.edit_from_date,
+                    on_change=AgendaState.handle_on_change_from_date,
+                    required=False,
                 ),
-                rx.vstack(
-                    rx.heading("To:", size="2"),
-                    rx.input(
-                        # default_value=AgendaState.agenda_to_date,
-                        default_value=AgendaState.display_date,
-                        on_change=AgendaState.handle_on_change_to_date,
-                        type="date",
-                        name="to_date",
-                        width="100%",
-                        required=True,
+                custom_date_input(
+                    title="To:",
+                    title_size=2,
+                    name="to_date",
+                    default_value=AgendaState.edit_to_date,
+                    on_change=AgendaState.handle_on_change_to_date,
+                    required=False,
+                ),
+                width="100%",
+            ),
+            rx.hstack(
+                rx.cond(
+                    AgendaState.is_valid_agenda,
+                    rx.button("Submit", type="submit"),
+                    rx.text(
+                        "The chosen dates are already booked !",
+                        color_scheme="ruby",
                     ),
+                ),
+                rx.button(
+                    "Cancel",
+                    type="submit",
+                    color_scheme="ruby",
+                    on_click=AgendaState.handle_cancel,
+                ),
+            ),
+        ),
+        on_submit=AgendaState.handle_submit,
+        reset_on_submit=False,
+    )
+
+
+def form_agenda_creation():
+    return rx.form(
+        rx.vstack(
+            rx.hstack(
+                rx.icon("map", size=40),
+                autocomplete(
+                    name="country",
+                    placeholder="Country Location",
+                    required=True,
                     width="100%",
+                    state=AgendaFormState,
+                    value=AgendaFormState.search_text,
+                ),
+                rx.icon("map-pinned", size=40),
+                autocomplete_town_search(),
+                width="100%",
+            ),
+            rx.divider(size="4"),
+            rx.hstack(
+                custom_date_input(
+                    title="From:",
+                    title_size=2,
+                    name="from_date",
+                    default_value=AgendaState.display_date,
+                    on_change=AgendaState.handle_on_change_from_date,
+                    required=True,
+                ),
+                custom_date_input(
+                    title="To:",
+                    title_size=2,
+                    name="to_date",
+                    default_value=AgendaState.display_date,
+                    on_change=AgendaState.handle_on_change_to_date,
+                    required=True,
                 ),
                 width="100%",
             ),
@@ -127,18 +160,59 @@ def add_entry_to_agenda_page() -> rx.Component:
         reset_on_submit=False,
     )
 
-    return base_page(
+
+def custom_date_input(
+    title: str,
+    title_size: int,
+    name: str,
+    default_value: str,
+    on_change,
+    input_width: str = "100%",
+    required: bool = False,
+    vstack_width: str = "100%",
+):
+    return (
         rx.vstack(
-            rx.heading("Gestion agenda", size="9"),
-            rx.desktop_only(
-                rx.box(agenda_form, width="50vw"), rx.box(agenda_list_page())
+            rx.heading(title, size=f"{title_size}"),
+            rx.input(
+                default_value=default_value,
+                on_change=on_change,
+                type="date",
+                name=name,
+                width=input_width,
+                required=required,
             ),
-            rx.mobile_and_tablet(
-                rx.box(agenda_form, width="85vw"),
+            width=vstack_width,
+        ),
+    )
+
+
+def add_entry_to_agenda_page() -> rx.Component:
+    agenda_creation_form = form_agenda_creation()
+    agenda_edition_form = form_agenda_edition()
+
+    return base_page(
+        rx.box(
+            rx.heading("My agenda", size="4"),
+            rx.divider(margin_top="1em", margin_bottom="1em"),
+            rx.desktop_only(
+                rx.cond(
+                    AgendaState.edit_mode_agenda_active,
+                    rx.box(agenda_edition_form, width="50vw"),
+                    rx.box(agenda_creation_form, width="50vw"),
+                ),
                 rx.box(agenda_list_page()),
             ),
-            spacing="5",
+            rx.mobile_and_tablet(
+                rx.cond(
+                    AgendaState.edit_mode_agenda_active,
+                    rx.box(agenda_edition_form, width="85vw"),
+                    rx.box(agenda_creation_form, width="85vw"),
+                ),
+                rx.box(agenda_list_page()),
+            ),
+            # spacing="5",
             align="center",
-            min_height="95vh",
+            min_height="85vh",
         ),
     )

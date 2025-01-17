@@ -7,6 +7,7 @@ from sqlmodel import select
 
 from Zart_404_UI.auth.state import UserSessionState
 from Zart_404_UI.models import AgendaModel, UserInfo
+from Zart_404_UI.service import get_all_countries, get_cities_of_country
 from Zart_404_UI.tools.utils import get_date_string, get_datetime
 
 START_TIME = "00:00:00"
@@ -15,13 +16,10 @@ FORMAT_DATE = "%Y-%m-%d"
 
 
 class AgendaFormState(rx.State):
-    _available_countries = [
-        "France",
-        "Feroe",
-        "Spain",
-        "Maroc",
-        "England",
-    ]
+    raw_countries = []
+    _available_countries = []
+    _available_countries_iso = []
+
     search_text: str = ""
     search_is_focused: bool = False
 
@@ -38,11 +36,24 @@ class AgendaFormState(rx.State):
             or self.search_text in self._available_countries
         ):
             return []
-        return [
-            option
-            for option in self._available_countries
-            if self.search_text.lower() in option.lower()
-        ]
+
+        elif len(self._available_countries) == 0:
+            self.raw_countries = get_all_countries()
+            self._available_countries = [
+                country["name"] for country in self.raw_countries
+            ]
+            self._available_countries_iso = [
+                country["iso2"] for country in self.raw_countries
+            ]
+
+        if len(self.search_text) >= 3:
+            return [
+                option
+                for option in self._available_countries
+                if self.search_text.lower() in option.lower()
+            ]
+        else:
+            return []
 
     # Additional management of a second field town
     _available_towns: list[str] = []
@@ -50,30 +61,17 @@ class AgendaFormState(rx.State):
     search_towns_is_focused: bool = False
 
     def get_available_towns(self, country: str) -> list[str]:
-        if country in ("France"):
-            return ["Paris", "Marseille", "Bastia", "Bordeaux", "Lille"]
-        elif country in ("Spain"):
-            return [
-                "Jaen",
-                "Madrid",
-                "Barcelona",
-                "Valecia",
-                "Gijon",
-                "Murcia",
-                "Toledo",
-                "Burgos",
-            ]
-        elif country in ("Maroc"):
-            return [
-                "Casablanca",
-                "Fez",
-                "Agadir",
-            ]
-        elif country in ("England"):
-            return ["London", "Leicester", "Totenham", "Manchester"]
+        idx = -1
+        try:
+            idx = self._available_countries.index(country)
+        except:
+            idx = -1
 
-        else:
-            return ["Unknown cities"]
+        if idx > 0:
+            country_iso_code = self._available_countries_iso[idx]
+            return get_cities_of_country(country_iso_2=country_iso_code)
+
+        return []
 
     @rx.var(cache=False)
     def town_available_completions(self) -> list[str]:
@@ -83,11 +81,15 @@ class AgendaFormState(rx.State):
             or self.search_towns in self._available_towns
         ):
             return []
-        return [
-            option
-            for option in self._available_towns
-            if self.search_towns.lower() in option.lower()
-        ]
+
+        if len(self.search_towns) >= 5:
+            return [
+                option
+                for option in self._available_towns
+                if self.search_towns.lower() in option.lower()
+            ]
+
+        return []
 
 
 class AgendaState(UserSessionState):
@@ -104,6 +106,14 @@ class AgendaState(UserSessionState):
     edit_mode_agenda_active: bool = False
     edit_mode_agenda_id: int = -1
 
+    @rx.var(cache=True)
+    def edit_from_date(self) -> str:
+        return self.datetime_to_date_string(date=self.edit_agenda.from_date)
+
+    @rx.var(cache=True)
+    def edit_to_date(self) -> str:
+        return self.datetime_to_date_string(date=self.edit_agenda.to_date)
+
     @rx.event
     def handle_click_speed_dial(self, index: int, action: str):
         if action in ("Delete"):
@@ -111,7 +121,6 @@ class AgendaState(UserSessionState):
 
         elif action in ("Modify"):
             self.active_edit_mode_agenda(index)
-            print("modif - index ", index)
 
     def remove_agenda_from_calendar(self, idx: int):
         agenda_to_remove = self.calendar[idx]
@@ -126,6 +135,7 @@ class AgendaState(UserSessionState):
     def deactive_edit_mode_agenda(self):
         self.edit_mode_agenda_id = -1
         self.edit_mode_agenda_active = False
+        self.edit_agenda = None
 
     def load_calendar(self, *args, **kwargs):
         """Load user calendar."""
@@ -147,6 +157,18 @@ class AgendaState(UserSessionState):
         self.limit = limit
         self.load_calendar()
         yield
+
+    def update_agenda(
+        self, country: str, town: str, from_date: datetime, to_date: datetime
+    ):
+        with rx.session() as session:
+            self.edit_agenda.country = country
+            self.edit_agenda.town = town
+            self.edit_agenda.from_date = from_date
+            self.edit_agenda.to_date = to_date
+            session.add(self.edit_agenda)
+            session.commit()
+            session.refresh(self.edit_agenda)
 
     def record_agenda_in_db(
         self, country: str, town: str, from_date: datetime, to_date: datetime
@@ -171,6 +193,9 @@ class AgendaState(UserSessionState):
             session.commit()
 
     def date_string_to_datetime(self, date: str, date_origin: str = "TO"):
+        if date == "":
+            return None
+
         if date_origin in ("TO"):
             return get_datetime(date, END_TIME)
         return get_datetime(date, START_TIME)
@@ -179,15 +204,21 @@ class AgendaState(UserSessionState):
         return get_date_string(date)
 
     def is_correct_dates(self, from_date: datetime, to_date: datetime) -> bool:
-        print("from date -> ", from_date, " , to date -> ", to_date)
         return from_date < to_date
 
     def is_overlapping_agenda(
-        self, from_date: datetime, to_date: datetime
+        self, from_date: datetime, to_date: datetime, edit_mode: bool = False
     ) -> dict:
         """Get an agenda in between to 2 dates"""
         temp_agenda = None
-        lookup_args = AgendaModel.userinfo_id == self.userinfo_id
+        lookup_args = (
+            (
+                AgendaModel.userinfo_id == self.userinfo_id,
+                AgendaModel.id != self.edit_agenda.id,
+            )
+            if edit_mode
+            else (AgendaModel.userinfo_id == self.userinfo_id,)
+        )
 
         # A new agenda can't exist in between an already existing booked agenda
         with rx.session() as session:
@@ -195,8 +226,8 @@ class AgendaState(UserSessionState):
                 select(AgendaModel)
                 .where((AgendaModel.from_date >= from_date))
                 .where(AgendaModel.to_date <= to_date)
-                .where(lookup_args)
-            ).one_or_none()
+                .where(*lookup_args)
+            ).first()
         if temp_agenda is not None:
             return {
                 "status": True,
@@ -209,8 +240,8 @@ class AgendaState(UserSessionState):
                 select(AgendaModel)
                 .where((AgendaModel.from_date <= from_date))
                 .where(AgendaModel.to_date >= to_date)
-                .where(lookup_args)
-            ).one_or_none()
+                .where(*lookup_args)
+            ).first()
         if temp_agenda is not None:
             return {
                 "status": True,
@@ -231,9 +262,6 @@ class AgendaState(UserSessionState):
         self.is_valid_agenda = self.validate_entry_date(
             from_date=start_date, to_date=end_date
         )
-        print(
-            "handle_on_change_from_date: is valid date ", self.is_valid_agenda
-        )
 
     @rx.event
     def handle_on_change_to_date(self, value):
@@ -246,7 +274,6 @@ class AgendaState(UserSessionState):
         self.is_valid_agenda = self.validate_entry_date(
             from_date=start_date, to_date=end_date
         )
-        print("handle_on_change_to_date: is valid date ", self.is_valid_agenda)
 
     def display_date_from_date(self, date: datetime) -> str:
         return date.strftime(FORMAT_DATE)
@@ -260,6 +287,9 @@ class AgendaState(UserSessionState):
     def validate_entry_date(
         self, from_date: datetime, to_date: datetime
     ) -> bool:
+        if from_date == "" or from_date is None:
+            return False
+
         if to_date is None:
             to_date = from_date + timedelta(days=1)
             self.agenda_to_date = self.datetime_to_date_string(to_date)
@@ -267,13 +297,18 @@ class AgendaState(UserSessionState):
         return (
             self.is_correct_dates(from_date=from_date, to_date=to_date)
             and not self.is_overlapping_agenda(
-                from_date=from_date, to_date=to_date
+                from_date=from_date,
+                to_date=to_date,
+                edit_mode=self.edit_mode_agenda_active,
             )["status"]
         )
 
+    @rx.event
+    def handle_cancel(self):
+        self.deactive_edit_mode_agenda
+
+    @rx.event
     def handle_submit(self, form_data: dict):
-        self.deactive_edit_mode_agenda()
-        print(form_data)
         self.form_data = form_data
 
         country = self.form_data.pop("country")
@@ -281,10 +316,8 @@ class AgendaState(UserSessionState):
 
         from_date = self.date_string_to_datetime(
             self.form_data.pop("from_date"), date_origin="FROM"
-        )  # get_datetime(self.form_data.pop("from_date"), START_TIME)
-        to_date = self.date_string_to_datetime(
-            self.form_data.pop("to_date")
-        )  # get_datetime(self.form_data.pop("to_date"), END_TIME)
+        )
+        to_date = self.date_string_to_datetime(self.form_data.pop("to_date"))
 
         if (
             self.validate_entry_date(from_date=from_date, to_date=to_date)
@@ -301,33 +334,11 @@ class AgendaState(UserSessionState):
             self.validate_entry_date(from_date=from_date, to_date=to_date)
             and self.edit_mode_agenda_active
         ):
-            self.deactive_edit_mode_agenda()
+            self.update_agenda(
+                country=country,
+                town=town,
+                from_date=from_date,
+                to_date=to_date,
+            )
 
-        # post_id = form_data.pop("id")
-        # publish_date = None
-        # publish_time = None
-        # if "publish_date" in form_data:
-        #     publish_date = form_data.pop("publish_date")
-        # if "publish_time" in form_data:
-        #     publish_time = form_data.pop("publish_time")
-        # publish_input_string = f"{publish_date} {publish_time}"
-        # final_publish_date = None
-
-        # try:
-        #     final_publish_date = datetime.strptime(
-        #         publish_input_string, "%Y-%m-%d %H:%M:%S"
-        #     )
-        # except ValueError as e:
-        #     final_publish_date = None
-
-        # publish_status = False
-
-        # if "publish_status" in form_data:
-        #     publish_status = form_data.pop("publish_status") == "on"
-
-        # updated_data = {**form_data}
-        # updated_data["publish_active"] = publish_status
-        # updated_data["publish_date"] = final_publish_date
-
-        # self.edit_post(post_id, updated_data)
-        # return self.to_blog_post()
+        self.deactive_edit_mode_agenda()

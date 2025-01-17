@@ -21,14 +21,16 @@ def agenda_card(
                         "From: ",
                         agenda.from_date,
                         size="2",
+                        color_scheme="iris",
                     ),
                     rx.heading(
                         "To: ",
                         agenda.to_date,
                         size="2",
+                        color_scheme="violet",
                     ),
                 ),
-                rx.divider(),
+                rx.divider(margin_top="1em", margin_bottom="1em"),
                 # rx.text("", size="3"),
                 # rx.text("", size="3"),
                 rx.text(

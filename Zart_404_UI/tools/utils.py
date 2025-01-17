@@ -14,7 +14,6 @@ def get_datetime(
     try:
         result = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     except ValueError as e:
-        print(e)
         result = None
 
     return result

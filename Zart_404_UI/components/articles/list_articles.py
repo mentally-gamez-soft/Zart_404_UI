@@ -67,7 +67,7 @@ def article_public_list_page() -> rx.Component:
     return base_page(
         rx.box(
             rx.heading("Published Articles", size="4"),
-            rx.divider(),
+            rx.divider(margin_top="1em", margin_bottom="1em"),
             article_public_list_component(),
             min_height="85vh",
         )

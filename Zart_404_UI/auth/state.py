@@ -38,16 +38,10 @@ class UserSessionState(reflex_local_auth.LocalAuthState):
 
             if result is None:
                 return None
-            # print(result)
-            # local_user = result.local_user
-            # print(self.user_name)
             return result
 
     def on_load(self):
-        # if not self.is_authenticated:
-        #    return reflex_local_auth.LoginState.register
-        print(self.authenticated_user_info)
-        print(self.authenticated_user_info.local_user)
+        pass
 
     def execute_logout(self):
         self.do_logout()

@@ -5,33 +5,20 @@ def autocomplete(
     name: str,
     placeholder: str,
     state: rx.State,
+    value: str,
     required: bool = False,
     width: str = "100%",
-    edit_mode: bool = False,
-    value: str = None,
 ):
     return (
         rx.vstack(
-            rx.cond(
-                edit_mode,
-                rx.input(
-                    required=required,
-                    name=name,
-                    placeholder=placeholder,
-                    value=value,
-                    on_change=state.set_search_text,
-                    on_focus=state.set_search_is_focused(True),
-                    on_blur=state.handle_custom_on_blur(False).debounce(500),
-                ),
-                rx.input(
-                    required=required,
-                    name=name,
-                    placeholder=placeholder,
-                    value=state.search_text,
-                    on_change=state.set_search_text,
-                    on_focus=state.set_search_is_focused(True),
-                    on_blur=state.handle_custom_on_blur(False).debounce(500),
-                ),
+            rx.input(
+                required=required,
+                name=name,
+                placeholder=placeholder,
+                value=value,
+                on_change=state.set_search_text,
+                on_focus=state.set_search_is_focused(True),
+                on_blur=state.handle_custom_on_blur(False).debounce(500),
             ),
             rx.cond(
                 state.default_available_completions,
